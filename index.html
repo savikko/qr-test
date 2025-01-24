@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="fi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>QR-koodin lukija</title>
+    <script src="https://cdn.jsdelivr.net/npm/html5-qrcode/minified/html5-qrcode.min.js"></script>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: Arial, sans-serif;
+        text-align: center;
+        background-color: #f4f4f9;
+        color: #333;
+      }
+      h1 {
+        font-size: 1.8rem;
+        margin: 20px 0;
+      }
+      #reader {
+        width: 100%;
+        max-width: 600px;
+        height: 400px;
+        margin: 20px auto;
+        position: relative;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        overflow: hidden;
+        background-color: #000;
+      }
+      #result {
+        margin-top: 20px;
+        font-size: 1.2rem;
+        color: #007bff;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>QR-koodin lukija</h1>
+    <div id="reader"></div>
+    <div id="result">QR-koodi tulos: <span id="qr-result">N/A</span></div>
+
+    <script>
+      let scanningPaused = false; // Estetään skannaus tilapäisesti
+
+      const onScanSuccess = (decodedText, decodedResult) => {
+          if (scanningPaused) {
+              return; // Estetään uusi skannaus 2 sekunnin viiveen aikana
+          }
+
+          scanningPaused = true; // Asetetaan skannaus tauolle
+
+          const qrResult = document.getElementById("qr-result");
+          qrResult.textContent = decodedText;
+
+          // Avataan uusi välilehti hakutulosta varten
+          const searchUrl = https://kauppa.kierratyskeskus.fi/s/search/?keywords=${decodedText};
+          window.open(searchUrl, "_blank");
+
+          // Vapautetaan skannaus 2 sekunnin viiveen jälkeen
+          setTimeout(() => {
+              scanningPaused = false;
+          }, 2000);
+      };
+
+      const onScanError = (errorMessage) => {
+          // Ei tehdä mitään virheen aikana
+      };
+
+      const startScanner = () => {
+          const qrCodeScanner = new Html5Qrcode("reader");
+
+          qrCodeScanner.start(
+              { facingMode: "environment" },
+              { fps: 10, qrbox: calculateQrBox() },
+              onScanSuccess,
+              onScanError
+          ).catch(err => {
+              console.error("QR-koodin lukeminen epäonnistui:", err);
+          });
+      };
+
+      const calculateQrBox = () => {
+          const width = window.innerWidth;
+          const height = window.innerHeight;
+          return Math.min(width, height) * 0.6; // Skannausalue on 60% näytön pienemmästä ulottuvuudesta
+      };
+
+      window.onload = () => {
+          startScanner();
+      };
+    </script>
+  </body>
+</html>
